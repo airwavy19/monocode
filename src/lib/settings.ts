@@ -308,6 +308,48 @@ export function saveClaudeHooks(value: boolean) {
   }
 }
 
+const SHOW_THINKING_KEY = "monocode.showThinking";
+
+export type ShowThinking = "on" | "off";
+
+export const SHOW_THINKING_DEFAULT: ShowThinking = "on";
+
+/** Fired on `window` when the show-thinking toggle flips. */
+export const SHOW_THINKING_CHANGE_EVENT = "monocode:show-thinking-change";
+
+function isShowThinking(value: unknown): value is ShowThinking {
+  return value === "on" || value === "off";
+}
+
+export function loadShowThinking(): ShowThinking {
+  try {
+    const raw = localStorage.getItem(SHOW_THINKING_KEY);
+    return isShowThinking(raw) ? raw : SHOW_THINKING_DEFAULT;
+  } catch {
+    return SHOW_THINKING_DEFAULT;
+  }
+}
+
+export function saveShowThinking(value: ShowThinking) {
+  const next = isShowThinking(value) ? value : SHOW_THINKING_DEFAULT;
+  try {
+    localStorage.setItem(SHOW_THINKING_KEY, next);
+  } catch {
+    // private mode / quota
+  }
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(
+    new CustomEvent<ShowThinking>(SHOW_THINKING_CHANGE_EVENT, { detail: next }),
+  );
+}
+
+export function subscribeShowThinking(onStoreChange: () => void) {
+  if (typeof window === "undefined") return () => {};
+  window.addEventListener(SHOW_THINKING_CHANGE_EVENT, onStoreChange);
+  return () =>
+    window.removeEventListener(SHOW_THINKING_CHANGE_EVENT, onStoreChange);
+}
+
 const CTRL = IS_MAC ? "⌃" : "Ctrl+";
 
 export type KeybindingRow = {
@@ -328,6 +370,11 @@ export const KEYBINDINGS: KeybindingRow[] = [
   { command: "App: New Window", keys: `${MOD}${SHIFT}N`, when: "Always" },
   { command: "App: Toggle Sidebar", keys: `${MOD}B`, when: "Always" },
   { command: "App: Switch Model", keys: `${MOD}.`, when: "Always" },
+  {
+    command: "View: Toggle Thinking",
+    keys: `${MOD}${SHIFT}T`,
+    when: "Always",
+  },
   { command: "View: Zoom In", keys: `${MOD}+`, when: "Always" },
   { command: "View: Zoom Out", keys: `${MOD}-`, when: "Always" },
   { command: "View: Reset Zoom", keys: `${MOD}0`, when: "Always" },

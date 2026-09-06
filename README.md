@@ -40,6 +40,23 @@ This is very early and you should expect bugs.
 
 Small, focused pull requests are welcome. Anything large is worth an issue first - see [CONTRIBUTING.md](CONTRIBUTING.md).
 
+### Show or hide agent thinking
+
+Reasoning from Pi, Claude Code, Codex, OpenCode, and omp streams into the
+transcript folded inside each turn's work. Toggle the **Show thinking** switch
+in **Settings → General** to keep it visible or hide it entirely. The same
+toggle is bound to `Ctrl/Cmd + Shift + T` anywhere in the app, so a running
+turn can be flipped without losing your place.
+
+### Paste images on Linux
+
+The composer paste handler reads `text/uri-list` and `text/plain` clipboard
+payloads in addition to the regular `DataTransfer.files` list. On
+X11/Wayland, GNOME Screenshot, Flameshot, and GIMP copy screenshots as
+`file:///tmp/...png` URIs rather than as `File` objects, so without the URI
+fallback paste silently does nothing. Both flows land in the same attachment
+list and small PNGs are inlined as base64 for vision-capable models.
+
 ## Build from source
 
 Supports macOS, Linux, and Windows.

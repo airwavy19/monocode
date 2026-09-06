@@ -131,6 +131,7 @@ import {
   loadGridArcadeEnabled,
   loadLiveAgentsEnabled,
   loadNotesEnabled,
+  loadShowThinking,
   saveClaudeHooks,
   saveComposerRunner,
   saveDiffViewer,
@@ -138,11 +139,13 @@ import {
   saveGridArcadeEnabled,
   saveLiveAgentsEnabled,
   saveNotesEnabled,
+  saveShowThinking,
   settingsSectionDescription,
   settingsSectionLabel,
   type DiffViewer,
   type FollowUpBehavior,
   type SettingsSectionId,
+  type ShowThinking,
 } from "../lib/settings";
 import { loadSoundsEnabled, playCue, saveSoundsEnabled } from "../lib/sounds";
 import {
@@ -300,6 +303,9 @@ function GeneralPage({
   const [notificationPermission, setNotificationPermission] =
     useState<NotificationPermission>(cachedNotificationPermission);
   const [claudeHooks, setClaudeHooks] = useState(loadClaudeHooks);
+  const [showThinking, setShowThinking] = useState<ShowThinking>(
+    loadShowThinking,
+  );
 
   // The user may flip the switch in System Settings and come back: re-read
   // the OS state whenever the window regains focus while the toggle is on.
@@ -361,6 +367,11 @@ function GeneralPage({
   const onLiveAgentsEnabled = (next: boolean) => {
     saveLiveAgentsEnabled(next);
     setLiveAgentsEnabled(next);
+  };
+
+  const onShowThinking = (next: ShowThinking) => {
+    saveShowThinking(next);
+    setShowThinking(next);
   };
 
   const onSoundsEnabled = (next: boolean) => {
@@ -502,6 +513,20 @@ function GeneralPage({
           label="Claude Code hooks"
           on={claudeHooks}
           onChange={onClaudeHooks}
+        />
+      </Row>
+      <Row
+        label="Show thinking"
+        description="Stream reasoning into the transcript as it arrives, folded inside each turn's work. Pi, Claude, Codex, OpenCode, and omp publish thinking; turn this off to hide it entirely. Toggle any time with Ctrl/Cmd + Shift + T."
+      >
+        <Segmented
+          label="Show thinking"
+          value={showThinking}
+          options={[
+            { value: "on", label: "On" },
+            { value: "off", label: "Off" },
+          ]}
+          onChange={onShowThinking}
         />
       </Row>
 

@@ -166,15 +166,17 @@ type ClipboardFileItem = {
   getAsFile: () => File | null;
 };
 
+type ClipboardLike = {
+  files?: ArrayLike<File> | null;
+  items?: ArrayLike<ClipboardFileItem> | null;
+  /** Mirrors `DataTransfer.getData`. Some Linux compositors surface copied
+   * images only as a `text/uri-list` text entry rather than as File objects. */
+  getData?: (type: string) => string;
+};
+
 /** Clipboard files plus items. WebKit's FileList is often truncated to the first file. */
 export function filesFromClipboard(
-  data:
-    | {
-        files?: ArrayLike<File> | null;
-        items?: ArrayLike<ClipboardFileItem> | null;
-      }
-    | null
-    | undefined,
+  data: ClipboardLike | null | undefined,
 ): File[] {
   const fromList = arrayLike(data?.files);
   const fromItems: File[] = [];
@@ -185,6 +187,58 @@ export function filesFromClipboard(
   }
   const files = fromItems.length > fromList.length ? fromItems : fromList;
   return dropMacScreenshotTwins(files);
+}
+
+/**
+ * Pull `file://` URIs out of `text/uri-list` and `text/plain` clipboard
+ * payloads. Linux + X11/Wayland clipboard managers (GNOME, KDE) often copy a
+ * screenshot as a URI entry instead of a file on the DataTransfer, which the
+ * webview surfaces as text rather than a `File`.
+ */
+export function pathsFromClipboard(
+  data: ClipboardLike | null | undefined,
+): string[] {
+  if (!data?.getData) return [];
+  const sources = [data.getData("text/uri-list"), data.getData("text/plain")];
+  const seen = new Set<string>();
+  const paths: string[] = [];
+  for (const raw of sources) {
+    for (const path of filePathsFromUriText(raw)) {
+      if (seen.has(path)) continue;
+      seen.add(path);
+      paths.push(path);
+    }
+  }
+  return paths;
+}
+
+function filePathsFromUriText(raw: string | undefined): string[] {
+  if (!raw) return [];
+  const out: string[] = [];
+  for (const line of raw.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const path = filePathFromUri(trimmed);
+    if (path) out.push(path);
+  }
+  return out;
+}
+
+function filePathFromUri(value: string): string | undefined {
+  if (!value.startsWith("file://")) return undefined;
+  try {
+    // Tauri's filesystem APIs accept POSIX paths even on Windows, so we only
+    // need to strip the scheme; URL decoding happens via `decodeURIComponent`.
+    const rest = value.slice("file://".length);
+    if (!rest) return undefined;
+    const hostSlash = rest.indexOf("/");
+    if (hostSlash < 0) return undefined;
+    const path = rest.slice(hostSlash);
+    if (!path) return undefined;
+    return decodeURI(path);
+  } catch {
+    return undefined;
+  }
 }
 
 function arrayLike<T>(list: ArrayLike<T> | null | undefined): T[] {

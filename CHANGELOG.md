@@ -11,6 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Settings: Notifications, off by default. With it on, a system notification appears when a turn finishes or an agent waits on an approval or question in a session that is not on screen, whether MonoCode is in the background or another session is open; clicking it jumps to that session. Turning it on asks macOS for permission, and a blocked state links to System Settings. The Sounds setting decides whether the notification plays a sound, and the in-app cue is skipped when the banner fires.
 
+## [0.2.0] - 2026-09-06
+
+### Added
+
+- Settings → General: **Show thinking** toggle, on by default. With it on, Pi, Claude, Codex, OpenCode, and omp reasoning streams into the transcript folded inside each turn's work; turn it off to hide reasoning rows and the initial-thinking shimmer entirely. The same toggle is bound to `Ctrl/Cmd + Shift + T` so a live turn can be flipped without opening Settings.
+- Linux clipboard image paste: the composer paste handler now reads `text/uri-list` and `text/plain` entries in addition to `DataTransfer.files`. On X11/Wayland, GNOME Screenshot, Flameshot, and GIMP copy screenshots as `file:///...png` URIs rather than as `File` objects; the URI fallback attaches them through the same path-based pipeline so vision-capable models receive the image bytes.
+
+### Changed
+
+- `KEYBINDINGS` includes `View: Toggle Thinking` (`Ctrl/Cmd + Shift + T`) so the shortcut list in Settings → Keybindings documents it.
+
 ## [0.1.34] - 2026-09-05
 
 ### Added

@@ -32,6 +32,7 @@ import {
   attachmentsFromPaths,
   filesFromClipboard,
   mergeAttachments,
+  pathsFromClipboard,
   pickAttachments,
   revokeAttachment,
 } from "../lib/attachments";
@@ -1032,10 +1033,16 @@ export function Composer({
 
   const onPaste = (e: ClipboardEvent<HTMLTextAreaElement>) => {
     const files = filesFromClipboard(e.clipboardData);
-    if (files.length === 0) return;
+    const uriPaths = pathsFromClipboard(e.clipboardData);
+    if (files.length === 0 && uriPaths.length === 0) return;
     e.preventDefault();
     if (!attachmentsSupported) return;
-    void attachmentsFromFiles(files).then(addAttachments);
+    if (files.length > 0) {
+      void attachmentsFromFiles(files).then(addAttachments);
+    }
+    if (uriPaths.length > 0) {
+      void attachmentsFromPaths(uriPaths).then(addAttachments);
+    }
   };
 
   const attachFromPicker = () => {

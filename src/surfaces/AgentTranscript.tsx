@@ -58,6 +58,7 @@ import {
 } from "../lib/session";
 import { HarnessIcon } from "../chrome/HarnessIcon";
 import { useLockOverscroll } from "../hooks/useLockOverscroll";
+import { useShowThinking } from "../hooks/useShowThinking";
 import { useTranscriptLayout } from "../hooks/useTranscriptLayout";
 import { useTranscriptAnchor } from "../hooks/useTranscriptAnchor";
 import { useTranscriptSelection } from "../hooks/useTranscriptSelection";
@@ -141,6 +142,13 @@ export function AgentTranscript({
   visible = true,
 }: Props) {
   const lockOverscroll = useLockOverscroll<HTMLDivElement>();
+  const showThinking = useShowThinking();
+  const thinkingVisible = showThinking === "on";
+  // When the user hides thinking, drop reasoning blocks before the layout runs
+  // so phases and the initial-thinking shimmer don't render them at all.
+  const displayBlocks = thinkingVisible
+    ? blocks
+    : blocks.filter((block) => block.role !== "reasoning");
   const scroller = useRef<HTMLDivElement>(null);
   const stickToBottom = useRef(true);
   const showJumpRef = useRef(false);
@@ -290,7 +298,7 @@ export function AgentTranscript({
     return () => observer.disconnect();
   }, [scrollerEl, setShowJump]);
 
-  const turns = groupTurns(blocks);
+  const turns = groupTurns(displayBlocks);
   const firstVisibleTurn = Math.max(0, turns.length - visibleTurnCount);
   const visibleTurns = turns.slice(firstVisibleTurn);
 

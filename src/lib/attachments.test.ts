@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { filesFromClipboard, mergeAttachments } from "./attachments";
+import {
+  filesFromClipboard,
+  mergeAttachments,
+  pathsFromClipboard,
+} from "./attachments";
 import type { Attachment } from "./session";
 
 function file(name: string, type: string, body = "x") {
@@ -86,5 +90,60 @@ describe("filesFromClipboard", () => {
         items: [item(png), item(tiff)],
       }),
     ).toEqual([png, tiff]);
+  });
+});
+
+describe("pathsFromClipboard", () => {
+  it("reads file:// uris from text/uri-list", () => {
+    const data = {
+      getData: (type: string) =>
+        type === "text/uri-list"
+          ? "# comment\nfile:///tmp/screenshot.png\n"
+          : "",
+    };
+    expect(pathsFromClipboard(data)).toEqual(["/tmp/screenshot.png"]);
+  });
+
+  it("falls back to file:// uri in text/plain", () => {
+    const data = {
+      getData: (type: string) =>
+        type === "text/plain" ? "file:///home/popwavy/Pictures/shot.png" : "",
+    };
+    expect(pathsFromClipboard(data)).toEqual([
+      "/home/popwavy/Pictures/shot.png",
+    ]);
+  });
+
+  it("decodes uri percent-encoding", () => {
+    const data = {
+      getData: (type: string) =>
+        type === "text/uri-list" ? "file:///tmp/some%20shot.png" : "",
+    };
+    expect(pathsFromClipboard(data)).toEqual(["/tmp/some shot.png"]);
+  });
+
+  it("ignores non-file schemes and blank lines", () => {
+    const data = {
+      getData: (type: string) =>
+        type === "text/uri-list"
+          ? "\nhttps://example.com/x.png\n\nfile:///tmp/a.png\n"
+          : "",
+    };
+    expect(pathsFromClipboard(data)).toEqual(["/tmp/a.png"]);
+  });
+
+  it("returns an empty list when no getData is provided", () => {
+    expect(pathsFromClipboard({})).toEqual([]);
+    expect(pathsFromClipboard(null)).toEqual([]);
+  });
+
+  it("de-duplicates paths reported in both uri-list and plain", () => {
+    const data = {
+      getData: (type: string) =>
+        type === "text/uri-list"
+          ? "file:///tmp/a.png\nfile:///tmp/b.png"
+          : "file:///tmp/a.png",
+    };
+    expect(pathsFromClipboard(data)).toEqual(["/tmp/a.png", "/tmp/b.png"]);
   });
 });

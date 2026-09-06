@@ -325,7 +325,9 @@ import {
   loadDiffViewer,
   loadFollowUpBehavior,
   loadSettingsSection,
+  loadShowThinking,
   saveSettingsSection,
+  saveShowThinking,
   subscribeLiveAgentsEnabled,
   subscribeNotesEnabled,
   type SettingsSectionId,
@@ -4786,6 +4788,12 @@ export default function App({
         e.preventDefault();
         e.stopPropagation();
         run("find_in_project", actions.current.onFindInProject);
+      }
+      if (mod && e.shiftKey && !e.altKey && e.key.toLowerCase() === "t") {
+        e.preventDefault();
+        e.stopPropagation();
+        const current = loadShowThinking();
+        saveShowThinking(current === "on" ? "off" : "on");
       }
     };
     window.addEventListener("keydown", onKey, true);
