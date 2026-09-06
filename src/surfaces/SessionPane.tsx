@@ -70,6 +70,7 @@ type Props = {
   ) => void;
   onStop: (sessionId: string) => void;
   onCompactContext: (sessionId: string) => boolean;
+  onNewSession: (sessionId: string) => string | undefined;
   onDeleteQueuedMessage: (sessionId: string, messageId: string) => void;
   onEditQueuedMessage: (
     sessionId: string,
@@ -139,6 +140,7 @@ export const SessionPane = memo(function SessionPane({
   onSubmit,
   onStop,
   onCompactContext,
+  onNewSession,
   onDeleteQueuedMessage,
   onEditQueuedMessage,
   onQueuedMessageEditingChange,
@@ -294,6 +296,7 @@ export const SessionPane = memo(function SessionPane({
       }
       onStop={() => onStop(session.id)}
       onCompactContext={() => onCompactContext(session.id)}
+      onNewSession={() => onNewSession(session.id)}
       queuedMessages={session.queuedMessages}
       queueStatus={session.queueStatus}
       onDeleteQueuedMessage={(messageId) =>

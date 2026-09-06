@@ -69,6 +69,7 @@ type Shared = {
   ) => void;
   onStop: (sessionId: string) => void;
   onCompactContext: (sessionId: string) => boolean;
+  onNewSession: (sessionId: string) => string | undefined;
   onDeleteQueuedMessage: (sessionId: string, messageId: string) => void;
   onEditQueuedMessage: (
     sessionId: string,
@@ -159,6 +160,7 @@ function PaneTreeComponent({
   onSubmit,
   onStop,
   onCompactContext,
+  onNewSession,
   onDeleteQueuedMessage,
   onEditQueuedMessage,
   onQueuedMessageEditingChange,
@@ -364,6 +366,7 @@ function PaneTreeComponent({
                 onSubmit={onSubmit}
                 onStop={onStop}
                 onCompactContext={onCompactContext}
+                onNewSession={onNewSession}
                 onDeleteQueuedMessage={onDeleteQueuedMessage}
                 onEditQueuedMessage={onEditQueuedMessage}
                 onQueuedMessageEditingChange={onQueuedMessageEditingChange}

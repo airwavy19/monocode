@@ -122,6 +122,7 @@ import { useComposerSkills } from "./useComposerSkills";
 import { Popover } from "./Popover";
 import { consumePlanCommand, PLAN_COMMAND } from "../lib/plan";
 import { COMPACT_COMMAND, isCompactCommand } from "../lib/compact";
+import { isNewCommand, NEW_COMMAND } from "../lib/newSession";
 
 type Props = {
   enabled?: boolean;
@@ -168,6 +169,7 @@ type Props = {
   ) => void;
   onStop?: () => void;
   onCompactContext?: () => boolean;
+  onNewSession?: () => string | undefined;
   onDeleteQueuedMessage?: (messageId: string) => void;
   onEditQueuedMessage?: (messageId: string, text: string) => void;
   onQueuedMessageEditingChange?: (messageId?: string) => void;
@@ -415,6 +417,7 @@ export function Composer({
   onSubmit,
   onStop,
   onCompactContext,
+  onNewSession,
   onDeleteQueuedMessage,
   onEditQueuedMessage,
   onQueuedMessageEditingChange,
@@ -492,11 +495,13 @@ export function Composer({
     () => [
       PLAN_COMMAND,
       COMPACT_COMMAND,
+      NEW_COMMAND,
       ...skills.filter(
         (skill) =>
           skill.kind === "native" ||
           (skill.name !== PLAN_COMMAND.name &&
-            skill.name !== COMPACT_COMMAND.name),
+            skill.name !== COMPACT_COMMAND.name &&
+            skill.name !== NEW_COMMAND.name),
       ),
     ],
     [skills],
@@ -907,6 +912,22 @@ export function Composer({
       setCreatingSkill(false);
       setCreateError(null);
       syncHasValue("", attachments);
+      return;
+    }
+
+    if (isNewCommand(value)) {
+      onNewSession?.();
+      if (!ref.current) return;
+      ref.current.value = "";
+      ref.current.style.height = "auto";
+      setDraft("");
+      onDraftChange?.("");
+      setPlusOpen(false);
+      setSlash(null);
+      setMention(null);
+      setCreatingSkill(false);
+      setCreateError(null);
+      syncHasValue("", []);
       return;
     }
 

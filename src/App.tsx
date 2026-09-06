@@ -5173,6 +5173,7 @@ export default function App({
                           onSubmit={onSubmit}
                           onStop={onStop}
                           onCompactContext={onCompactContext}
+                          onNewSession={() => onNew()}
                           onDeleteQueuedMessage={onDeleteQueuedMessage}
                           onEditQueuedMessage={onEditQueuedMessage}
                           onQueuedMessageEditingChange={

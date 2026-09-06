@@ -57,6 +57,12 @@ X11/Wayland, GNOME Screenshot, Flameshot, and GIMP copy screenshots as
 fallback paste silently does nothing. Both flows land in the same attachment
 list and small PNGs are inlined as base64 for vision-capable models.
 
+### Start a fresh chat with `/new`
+
+Type `/new` in the composer (or pick it from the `/` picker) to spin up a
+new tab in the same project. The new composer is focused immediately so the
+old transcript stays behind without any sidebar hunting.
+
 ## Build from source
 
 Supports macOS, Linux, and Windows.
