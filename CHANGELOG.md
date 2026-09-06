@@ -11,6 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Settings: Notifications, off by default. With it on, a system notification appears when a turn finishes or an agent waits on an approval or question in a session that is not on screen, whether MonoCode is in the background or another session is open; clicking it jumps to that session. Turning it on asks macOS for permission, and a blocked state links to System Settings. The Sounds setting decides whether the notification plays a sound, and the in-app cue is skipped when the banner fires.
 
+## [0.4.0] - 2026-09-06
+
+### Added
+
+- Each commit row in the source-control **Graph** panel shows a compact relative-time pill (`5m`, `3h`, `2d`, `3w`, `5mo`, `2y`) next to the ref tag, plus a verbose relative time on hover. The label re-renders every minute so a long-running session doesn't leave stale dates behind.
+
+### Changed
+
+- `formatRelativeTime` is now powered by `src/lib/relativeTime.ts` and accepts Unix seconds, Unix milliseconds, ISO strings, or `Date` objects; `githubTasks.ts` re-exports it for the existing notes and inbox surfaces.
+
 ## [0.3.0] - 2026-09-06
 
 ### Added
@@ -556,7 +566,8 @@ First public release. macOS (Apple Silicon) only.
 - Updater endpoint and minisign public key are injected at release time rather than committed, so forks do not inherit the maintainer's update channel.
 - macOS release builds sign with `APPLE_SIGNING_IDENTITY` via a config overlay; the committed default remains ad-hoc `-` for community builds.
 
-[Unreleased]: https://github.com/hardbeat920/monocode/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/hardbeat920/monocode/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/hardbeat920/monocode/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/hardbeat920/monocode/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/hardbeat920/monocode/compare/v0.1.34...v0.2.0
 [0.1.34]: https://github.com/hardbeat920/monocode/compare/v0.1.33...v0.1.34

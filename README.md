@@ -63,6 +63,13 @@ Type `/new` in the composer (or pick it from the `/` picker) to spin up a
 new tab in the same project. The new composer is focused immediately so the
 old transcript stays behind without any sidebar hunting.
 
+### Time-ago labels on the git graph
+
+Each commit row in the source-control graph now shows a compact `5m` /
+`3h` / `2d` / `3w` / `5mo` / `2y` pill next to the ref tag. Hover the
+pill for the full verbose relative time. The label re-renders every minute
+so a long-running session doesn't leave stale dates behind.
+
 ## Build from source
 
 Supports macOS, Linux, and Windows.

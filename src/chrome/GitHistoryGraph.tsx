@@ -21,6 +21,10 @@ import {
   type GraphRef,
   type HistoryItemViewModel,
 } from "../lib/gitGraph";
+import {
+  formatRelativeTime,
+  formatRelativeTimeShort,
+} from "../lib/relativeTime";
 
 type Props = {
   cwd: string;
@@ -173,6 +177,7 @@ function HistoryRow({
             </span>
           ) : null}
         </span>
+        <TimeAgo timestamp={commit.timestamp} />
         {badge ? <RefPill refInfo={badge} /> : null}
       </button>
     </li>
@@ -199,6 +204,29 @@ function RefPill({ refInfo }: { refInfo: GraphRef }) {
         <GitBranch className="size-2.5 shrink-0" strokeWidth={2} />
       ) : null}
       <span className="min-w-0 truncate">{refInfo.name}</span>
+    </span>
+  );
+}
+
+/** Live-ticking "5m / 3h / 2d" label for each graph row. */
+function TimeAgo({ timestamp }: { timestamp: number }) {
+  // Re-render every minute so labels stay fresh without re-fetching the log.
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    if (!timestamp) return;
+    const interval = setInterval(() => setTick((value) => value + 1), 60_000);
+    return () => clearInterval(interval);
+  }, [timestamp]);
+  if (!timestamp) return null;
+  const short = formatRelativeTimeShort(timestamp);
+  if (!short) return null;
+  const long = formatRelativeTime(timestamp);
+  return (
+    <span
+      className="ml-1 inline-flex shrink-0 select-none items-center self-center rounded px-1 text-[10px] leading-none text-content/45 tabular-nums"
+      title={long}
+    >
+      {short}
     </span>
   );
 }
