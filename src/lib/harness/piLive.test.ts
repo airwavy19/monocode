@@ -36,6 +36,8 @@ vi.mock("./piClient", () => ({
 
 import { compactPiContext, stopPiSession } from "./pi";
 import type { HarnessEvent } from "./types";
+import { appendUser, applyHarnessEvent } from "./apply";
+import { newSession } from "../session";
 
 describe("Pi live session", () => {
   beforeEach(() => {
@@ -89,7 +91,7 @@ describe("Pi live session", () => {
     await stopPiSession("pi-compact");
   });
 
-  it("publishes readable Ponytail status and extension notifications", async () => {
+  it("keeps footer status out of chat and publishes readable notifications", async () => {
     const events: HarnessEvent[] = [];
     await compactPiContext({
       sessionId: "pi-ansi",
@@ -120,9 +122,49 @@ describe("Pi live session", () => {
       statusText: "\u001b[0m",
     });
     expect(events.filter((event) => event.type === "status")).toEqual([
-      { type: "status", text: "○ ponytail: ⚡ FULL" },
       { type: "status", text: "Plugin ready" },
     ]);
     await stopPiSession("pi-ansi");
+  });
+
+  it("does not split streamed responses with animated caveman footer updates", async () => {
+    let session = appendUser(newSession("pi", "/repo"), "hello");
+    await compactPiContext({
+      sessionId: "pi-footer-stream",
+      cwd: "/repo",
+      model: "pi:default",
+      runtimeMode: "supervised",
+      onEvent: (event) => {
+        session = applyHarnessEvent(session, event);
+      },
+    });
+    const frame = mocks.frames[0]!;
+    for (const kind of ["thinking", "text"]) {
+      for (const [index, delta] of ["Hello", " there", "!"].entries()) {
+        frame({
+          type: "message_update",
+          assistantMessageEvent: { type: `${kind}_delta`, delta },
+        });
+        frame({
+          type: "extension_ui_request",
+          id: `${kind}-footer-${index}`,
+          method: "setStatus",
+          statusKey: "caveman",
+          statusText: `${["⠋", "⠙", "⠹"][index]} caveman level: FULL`,
+        });
+      }
+    }
+    frame({
+      type: "extension_ui_request",
+      id: "clear-footer",
+      method: "setStatus",
+      statusKey: "caveman",
+    });
+    expect(session.blocks.map(({ role, text }) => ({ role, text }))).toEqual([
+      { role: "user", text: "hello" },
+      { role: "reasoning", text: "Hello there!" },
+      { role: "assistant", text: "Hello there!" },
+    ]);
+    await stopPiSession("pi-footer-stream");
   });
 });

@@ -863,6 +863,10 @@ async function handleExtensionUi(
   request: PiExtensionUiRequest,
 ): Promise<void> {
   if (!needsExtensionUiReply(request)) {
+    // Pi extensions redraw footer status (including animated spinners) on every
+    // tick. These are UI state, not conversation events: appending them splits
+    // streamed assistant/reasoning blocks and floods the transcript.
+    if (request.method === "setStatus") return;
     const text = request.title ? extensionUiTitle(request) : "";
     if (text.trim()) live.onEvent({ type: "status", text });
     return;

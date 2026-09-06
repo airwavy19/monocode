@@ -26,6 +26,38 @@ npm run tauri dev
 
 One provider is enough. MonoCode probes for each CLI at startup and disables the ones it can’t find, with a hint about how to install them, so a missing Codex doesn’t stop you from working on anything else.
 
+## Run the latest local build
+
+After changing the app, build the desktop executable with:
+
+```bash
+npm run build
+npx tauri build --no-bundle --config '{"build":{"beforeBuildCommand":""}}'
+```
+
+The executable is written to `target/release/monocode`. To make `monocode` launch that build from any terminal, put a symlink in a directory on your `PATH`:
+
+```bash
+mkdir -p "$HOME/.local/bin"
+ln -sfn "$PWD/target/release/monocode" "$HOME/.local/bin/monocode"
+```
+
+Linux shells commonly already include `$HOME/.local/bin`. On macOS, add it once to zsh and reload the shell:
+
+```bash
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.zshrc"
+source "$HOME/.zshrc"
+```
+
+Verify that the command points at the checkout you just built:
+
+```bash
+command -v monocode
+readlink -f "$(command -v monocode)"  # Linux
+```
+
+On macOS, use `realpath "$(command -v monocode)"` if `readlink -f` is unavailable. Re-run the `ln -sfn` command after each new build so the command always follows the latest executable.
+
 ## Where things live
 
 - `src/chrome/` - the window frame: title bar, sidebar, composer, tabs, model picker
