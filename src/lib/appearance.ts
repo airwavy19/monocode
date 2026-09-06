@@ -15,7 +15,7 @@ const TRANSCRIPT_LAYOUT_KEY = "monocode.transcriptLayout";
 const TRANSCRIPT_ANCHOR_KEY = "monocode.transcriptAnchor";
 
 export type ColorScheme = "dark" | "light";
-export type ThemePreference = ColorScheme | "system";
+export type ThemePreference = ColorScheme | "system" | "black";
 export type TranscriptLayout = "full" | "chat";
 
 export const THEME_PREFERENCE_DEFAULT: ThemePreference = "dark";
@@ -135,9 +135,7 @@ export function loadThemeSaturation(): number {
 export function saveThemeSaturation(value: number) {
   writeNumber(
     THEME_SATURATION_KEY,
-    Math.round(
-      clamp(value, THEME_SATURATION_MIN, THEME_SATURATION_MAX),
-    ),
+    Math.round(clamp(value, THEME_SATURATION_MIN, THEME_SATURATION_MAX)),
   );
 }
 
@@ -156,7 +154,10 @@ export function applyThemeTint(hue: number, saturation: number) {
 
 export function initAppearance() {
   document.documentElement.classList.toggle("is-mac", IS_MAC);
-  document.documentElement.classList.toggle("has-native-glass", HAS_NATIVE_GLASS);
+  document.documentElement.classList.toggle(
+    "has-native-glass",
+    HAS_NATIVE_GLASS,
+  );
   applyThemeTint(loadThemeHue(), loadThemeSaturation());
   applyThemePreference(loadThemePreference());
   watchSystemColorScheme();
@@ -167,7 +168,12 @@ export function initAppearance() {
 }
 
 function isThemePreference(value: unknown): value is ThemePreference {
-  return value === "dark" || value === "light" || value === "system";
+  return (
+    value === "dark" ||
+    value === "light" ||
+    value === "system" ||
+    value === "black"
+  );
 }
 
 export function loadThemePreference(): ThemePreference {
@@ -197,7 +203,11 @@ function systemColorScheme(): ColorScheme {
 }
 
 export function resolveColorScheme(value: ThemePreference): ColorScheme {
-  return value === "system" ? systemColorScheme() : value;
+  return value === "system"
+    ? systemColorScheme()
+    : value === "black"
+      ? "dark"
+      : value;
 }
 
 export function isLightScheme(): boolean {
@@ -206,6 +216,7 @@ export function isLightScheme(): boolean {
 
 export function applyThemePreference(value: ThemePreference): ColorScheme {
   const next = resolveColorScheme(value);
+  document.documentElement.classList.toggle("theme-black", value === "black");
   document.documentElement.classList.toggle("theme-light", next === "light");
   window.dispatchEvent(
     new CustomEvent<ColorScheme>(SCHEME_CHANGE_EVENT, { detail: next }),
@@ -262,9 +273,7 @@ export function saveSidebarBlur(value: number) {
 }
 
 export function applySidebarBlur(value: number) {
-  const next = Math.round(
-    clamp(value, SIDEBAR_BLUR_MIN, SIDEBAR_BLUR_MAX),
-  );
+  const next = Math.round(clamp(value, SIDEBAR_BLUR_MIN, SIDEBAR_BLUR_MAX));
   void invoke("set_window_background_blur", { radius: next });
   return next;
 }
@@ -338,9 +347,7 @@ export function loadProjectRailWidth(): number {
 export function saveProjectRailWidth(value: number) {
   writeNumber(
     PROJECT_RAIL_WIDTH_KEY,
-    Math.round(
-      clamp(value, PROJECT_RAIL_WIDTH_MIN, PROJECT_RAIL_WIDTH_MAX),
-    ),
+    Math.round(clamp(value, PROJECT_RAIL_WIDTH_MIN, PROJECT_RAIL_WIDTH_MAX)),
   );
 }
 

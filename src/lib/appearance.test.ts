@@ -108,7 +108,7 @@ describe("theme preference setting", () => {
   });
 
   it("persists each preference", () => {
-    for (const value of ["system", "light", "dark"] as const) {
+    for (const value of ["system", "light", "dark", "black"] as const) {
       saveThemePreference(value);
       expect(localStorage.getItem(SCHEME_KEY)).toBe(value);
       expect(loadThemePreference()).toBe(value);
@@ -130,6 +130,7 @@ describe("theme preference setting", () => {
   it("keeps explicit picks regardless of the OS appearance", () => {
     mockSystemScheme("light");
     expect(resolveColorScheme("dark")).toBe("dark");
+    expect(resolveColorScheme("black")).toBe("dark");
     mockSystemScheme("dark");
     expect(resolveColorScheme("light")).toBe("light");
   });

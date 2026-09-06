@@ -8,6 +8,9 @@ import {
 import { useLockOverscroll } from "../hooks/useLockOverscroll";
 import { TerminalGridBackground } from "./TerminalGridBackground";
 
+import { useSessionArtwork } from "../lib/sessionArtwork";
+import { SessionArtwork } from "./SessionArtwork";
+
 type Props = {
   cwd: string;
   composer?: ReactNode;
@@ -20,6 +23,7 @@ export function EmptySession({ cwd, composer }: Props) {
     loadGridArcadeEnabled,
     () => true,
   );
+  const artwork = useSessionArtwork();
   const project = looksLikeProject(cwd) ? basename(cwd) : null;
   const title = project
     ? `What should we work on in ${project}?`
@@ -30,7 +34,11 @@ export function EmptySession({ cwd, composer }: Props) {
       ref={lockOverscroll}
       className="relative flex h-full min-h-0 overflow-y-auto overscroll-none"
     >
-      {arcadeEnabled ? <TerminalGridBackground /> : null}
+      {artwork.mode === "image" ? (
+        <SessionArtwork artwork={artwork} />
+      ) : artwork.mode === "arcade" && arcadeEnabled ? (
+        <TerminalGridBackground />
+      ) : null}
       {composer ? (
         <div className="pointer-events-none relative z-10 mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center px-6 py-12">
           <div className="pointer-events-auto mb-4 px-2.5">

@@ -1,4 +1,11 @@
 import {
+  DEFAULT_ARTWORK,
+  selectSessionArtwork,
+  saveSessionArtwork,
+  useSessionArtwork,
+} from "../lib/sessionArtwork";
+import { SessionArtwork } from "./SessionArtwork";
+import {
   ArrowDownCircle,
   Check,
   Loader,
@@ -763,12 +770,12 @@ function UpdateRow({
         </SecondaryButton>
         <SecondaryButton onClick={() => void onClick()} disabled={busy}>
           {busy ? (
-          <Loader className="size-3.5 animate-spin" aria-hidden />
-        ) : hasUpdate ? (
-          <ArrowDownCircle className="size-3.5 text-accent" aria-hidden />
-        ) : (
-          <RefreshCw className="size-3.5" strokeWidth={1.75} aria-hidden />
-        )}
+            <Loader className="size-3.5 animate-spin" aria-hidden />
+          ) : hasUpdate ? (
+            <ArrowDownCircle className="size-3.5 text-accent" aria-hidden />
+          ) : (
+            <RefreshCw className="size-3.5" strokeWidth={1.75} aria-hidden />
+          )}
           {hasUpdate ? "Download" : "Check for updates"}
         </SecondaryButton>
       </div>
@@ -855,14 +862,126 @@ function useAppearanceSettings() {
   };
 }
 
+function ArtworkSettings() {
+  const artwork = useSessionArtwork();
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const update = (next: typeof artwork) => {
+    try {
+      saveSessionArtwork(next);
+      setError("");
+    } catch {
+      setError("Could not save the image. Local storage may be full.");
+    }
+  };
+  return (
+    <>
+      <Heading title="New session background" />
+      <Row
+        label="Background"
+        description="Choose your own artwork, the arcade, or a quiet empty pane."
+      >
+        <Select
+          label="New session background"
+          value={artwork.mode}
+          options={[
+            { value: "image", label: "Image" },
+            { value: "arcade", label: "Arcade" },
+            { value: "none", label: "None" },
+          ]}
+          onChange={(mode) =>
+            update({ ...artwork, mode: mode as typeof artwork.mode })
+          }
+        />
+      </Row>
+      {artwork.mode === "image" && (
+        <>
+          <div
+            className="relative mt-4 h-56 overflow-hidden rounded-lg border border-content/10"
+            role="img"
+            aria-label={`Background preview: ${artwork.name}`}
+          >
+            <SessionArtwork artwork={artwork} />
+          </div>
+          <Row label="Artwork" description={artwork.path ?? artwork.name}>
+            <SecondaryButton
+              disabled={busy}
+              onClick={async () => {
+                setBusy(true);
+                setError("");
+                try {
+                  const path = await selectSessionArtwork(artwork.path);
+                  if (path)
+                    update({
+                      ...artwork,
+                      path,
+                      source: DEFAULT_ARTWORK.source,
+                      name: path.split(/[\\/]/).pop() ?? path,
+                    });
+                } catch (cause) {
+                  setError(
+                    cause instanceof Error ? cause.message : String(cause),
+                  );
+                } finally {
+                  setBusy(false);
+                }
+              }}
+            >
+              {busy ? "Opening…" : "Choose from folder…"}
+            </SecondaryButton>
+            <SecondaryButton
+              disabled={busy}
+              onClick={() => update(DEFAULT_ARTWORK)}
+            >
+              Reset
+            </SecondaryButton>
+          </Row>
+          {error && (
+            <p role="alert" className="text-[12px] text-red-400">
+              {error}
+            </p>
+          )}
+          <Row
+            label="Pixel size"
+            description="Fine ordered dithering with crisp, larger pixels at higher values."
+          >
+            <Slider
+              label="Artwork pixel size"
+              value={artwork.pixelSize}
+              display={`${artwork.pixelSize}px`}
+              min={1}
+              max={6}
+              onChange={(pixelSize) => update({ ...artwork, pixelSize })}
+            />
+          </Row>
+          <Row
+            label="Brightness"
+            description="The image fades gently into the pane beneath the composer."
+          >
+            <Slider
+              label="Artwork brightness"
+              value={artwork.brightness}
+              display={`${artwork.brightness}%`}
+              min={20}
+              max={100}
+              onChange={(brightness) => update({ ...artwork, brightness })}
+            />
+          </Row>
+        </>
+      )}
+    </>
+  );
+}
+
 function AppearancePage({ appearance }: { appearance: AppearanceSettings }) {
   const percent = Math.round(appearance.opacity * 100);
 
   return (
     <>
+      <ArtworkSettings />
       <Row
         label="Theme"
-        description="System follows the OS appearance. Dark and light share the same tint, so the hue below applies to both."
+        description="System follows the OS appearance. Pitch Black uses an opaque, pure black background."
       >
         <Segmented
           label="Theme"
@@ -870,37 +989,42 @@ function AppearancePage({ appearance }: { appearance: AppearanceSettings }) {
           options={[
             { value: "system", label: "System" },
             { value: "dark", label: "Dark" },
+            { value: "black", label: "Pitch Black" },
             { value: "light", label: "Light" },
           ]}
           onChange={appearance.onThemePreference}
         />
       </Row>
-      <Row
-        label="Sidebar opacity"
-        description="How much of the desktop shows through the sidebar and the project rail."
-      >
-        <Slider
-          label="Sidebar opacity"
-          value={percent}
-          display={`${percent}%`}
-          min={Math.round(SIDEBAR_OPACITY_MIN * 100)}
-          max={Math.round(SIDEBAR_OPACITY_MAX * 100)}
-          onChange={appearance.onOpacity}
-        />
-      </Row>
-      <Row
-        label="Blur radius"
-        description="Background blur behind the window. Higher values cost more to composite."
-      >
-        <Slider
-          label="Blur radius"
-          value={appearance.blur}
-          display={String(appearance.blur)}
-          min={SIDEBAR_BLUR_MIN}
-          max={SIDEBAR_BLUR_MAX}
-          onChange={appearance.onBlur}
-        />
-      </Row>
+      {appearance.themePreference !== "black" && (
+        <>
+          <Row
+            label="Sidebar opacity"
+            description="How much of the desktop shows through the sidebar and the project rail."
+          >
+            <Slider
+              label="Sidebar opacity"
+              value={percent}
+              display={`${percent}%`}
+              min={Math.round(SIDEBAR_OPACITY_MIN * 100)}
+              max={Math.round(SIDEBAR_OPACITY_MAX * 100)}
+              onChange={appearance.onOpacity}
+            />
+          </Row>
+          <Row
+            label="Blur radius"
+            description="Background blur behind the window. Higher values cost more to composite."
+          >
+            <Slider
+              label="Blur radius"
+              value={appearance.blur}
+              display={String(appearance.blur)}
+              min={SIDEBAR_BLUR_MIN}
+              max={SIDEBAR_BLUR_MAX}
+              onChange={appearance.onBlur}
+            />
+          </Row>
+        </>
+      )}
       <Row label="Hue" description="Base hue for accents and tinted surfaces.">
         <Slider
           label="Hue"
@@ -926,16 +1050,18 @@ function AppearancePage({ appearance }: { appearance: AppearanceSettings }) {
           onChange={(value) => appearance.onTint(appearance.themeHue, value)}
         />
       </Row>
-      <Row
-        label="Main pane glass"
-        description="Extend the translucent treatment to the main pane behind sessions and editors."
-      >
-        <Toggle
+      {appearance.themePreference !== "black" && (
+        <Row
           label="Main pane glass"
-          on={appearance.bodyGlass}
-          onChange={appearance.onBodyGlass}
-        />
-      </Row>
+          description="Extend the translucent treatment to the main pane behind sessions and editors."
+        >
+          <Toggle
+            label="Main pane glass"
+            on={appearance.bodyGlass}
+            onChange={appearance.onBodyGlass}
+          />
+        </Row>
+      )}
       <Row
         label="Interface scale"
         description="Zoom the whole interface. You can also use Ctrl+=, Ctrl+-, and Ctrl+0 (Cmd on macOS)."
@@ -1407,7 +1533,9 @@ function Segmented<T extends string>({
       role="radiogroup"
       aria-label={label}
       className="grid w-40 gap-0.5 rounded-md border border-content/10 p-0.5 text-[12px]"
-      style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
+      style={{
+        gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))`,
+      }}
     >
       {options.map((option) => (
         <button

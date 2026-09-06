@@ -1,0 +1,33 @@
+.session-artwork {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: inherit;
+  background: var(--color-background-base);
+}
+.session-artwork canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  opacity: var(--artwork-brightness, 0.65);
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000e 15%,
+    #0009 35%,
+    #0005 52%,
+    #0002 72%,
+    transparent 95%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000e 15%,
+    #0009 35%,
+    #0005 52%,
+    #0002 72%,
+    transparent 95%
+  );
+}
