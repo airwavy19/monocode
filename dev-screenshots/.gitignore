@@ -1,0 +1,3 @@
+# dev-screenshots — output is gitignored; force-add the per-feature folder
+# when attaching to a PR so the audit trail stays in git history.
+saved/

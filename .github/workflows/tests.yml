@@ -1,0 +1,111 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+
+# Three jobs (two if the repo has no public hostname):
+#   - fast  = required push-to-main check, runs the curated quick subset (<60s target).
+#             Advisory by default — there is no merge gate in this model, but
+#             the Shipped thread cites the run in `## Verification`.
+#   - full  = slow / full / build, lets the runner take its time, persisted logs.
+#             Always `continue-on-error: true`; surfaces regression without blocking.
+#   - live  = curl the deployed livesite /health after fast green. Catches
+#             "tests pass, deploy dead". Skip the job if no public hostname.
+# All jobs use the self-hosted runner registered for this repo.
+# Minute cap: free on self-hosted (no GH quota charged).
+
+# `live` job config — set LIVE_HOST + LIVE_HEALTH_PATH when the repo has a public URL.
+# Leave both empty to skip the job.
+env:
+  LIVE_HOST: ""           # e.g. accountabill.rafiamjad.my.id
+  LIVE_HEALTH_PATH: "/health"  # endpoint that returns 200 when the app is live
+
+jobs:
+  fast:
+    name: check-fast
+    runs-on: [self-hosted, linux, self]
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Python info
+        run: |
+          python3 --version
+          which python3
+
+      - name: Install Python deps (if needed)
+        run: |
+          if [ -f requirements.txt ]; then
+            python3 -m pip install --quiet -r requirements.txt
+          fi
+          if [ -f requirements-test.txt ]; then
+            python3 -m pip install --quiet -r requirements-test.txt
+          fi
+
+      - name: check-fast
+        run: make check-fast
+        # Full pytest log is captured per-step on GH — no /tmp truncation, no tail chasing.
+
+  full:
+    name: check-full
+    runs-on: [self-hosted, linux, self]
+    timeout-minutes: 30
+    # full is non-blocking — there is no merge gate in this model, and a slow
+    # suite shouldn't block the agent's push to main. Results still surface as
+    # advisory signal; failures get a follow-up Shipped thread with a fix push.
+    continue-on-error: true
+    needs: fast
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Python info
+        run: |
+          python3 --version
+          which python3
+
+      - name: Install Python deps (if needed)
+        run: |
+          if [ -f requirements.txt ]; then
+            python3 -m pip install --quiet -r requirements.txt
+          fi
+          if [ -f requirements-test.txt ]; then
+            python3 -m pip install --quiet -r requirements-test.txt
+          fi
+
+      - name: check-full
+        run: make check-full
+
+      - name: Upload full pytest log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-full-log
+          path: |
+            /tmp/*.log
+            **/pytest.log
+          if-no-files-found: ignore
+
+  live:
+    # Skip when no public hostname is configured — pure-backend / library repos
+    # don't need a livesite healthcheck. Edit LIVE_HOST above to enable.
+    if: env.LIVE_HOST != ''
+    name: live-healthcheck
+    runs-on: [self-hosted, linux, self]
+    needs: fast
+    timeout-minutes: 2
+    # Informational in this model — there is no merge gate. A red live job
+    # surfaces in the Shipped thread's `## Verification` and triggers a
+    # follow-up fix push. Drop this line if you want the live job to fail loud
+    # instead of fail quiet.
+    continue-on-error: true
+    steps:
+      - name: curl livesite /health
+        run: |
+          url="https://${LIVE_HOST}${LIVE_HEALTH_PATH}"
+          echo "GET $url"
+          # -f fail on non-2xx, -s silent, -S show errors, --max-time 10s cap.
+          curl -fsS --max-time 10 "$url" || {
+            echo "::error::livesite $url did not return 2xx"
+            exit 1
+          }
