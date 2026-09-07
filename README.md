@@ -116,6 +116,7 @@ not changed or saved as an artwork preference.
 
 ### Releases / Changelog
 
+- [v0.6.0 — high-definition background default](https://github.com/airwavy19/monocode/releases/tag/v0.6.0): session background now renders at container resolution with smooth scaling by default; **Pixelated look** toggle opts back into the dithered pixel-art treatment; legacy default-bundle artwork preferences migrate to `pixelated: false` on next launch. Also includes the v0.5.x follow-ups: pitch-black theme default, Notifications off-by-default with system banner + permission flow, and the **Pixelated look** toggle itself. This is a prerelease from main pending native desktop smoke testing. See [CHANGELOG.md](CHANGELOG.md) and the release notes for verification, migration behaviour and rollback instructions.
 - [v0.5.0 — chat artwork and image paste](https://github.com/airwavy19/monocode/releases/tag/v0.5.0): adjustable artwork in populated chats; native image clipboard fallback for desktop composers; local URI decoding and full attachment-limit handling. This is a prerelease from main pending native desktop smoke testing. See [CHANGELOG.md](CHANGELOG.md) and the release notes for verification, platform limits and rollback instructions. Installing a rebuilt desktop application is required for the new native clipboard command; refreshing an old binary's frontend is insufficient.
 
 ### Start a fresh chat with `/new`

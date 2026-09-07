@@ -7,10 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-09-07
+
 ### Added
 
 - Appearance: the default theme preference is now pitch black, so a fresh install opens in true OLED-friendly pure black instead of the dark-grey scheme. Existing users keep their saved preference.
-- Settings: a "Pixelated look" toggle on the session background. Off renders the image at its highest definition with smooth scaling; on keeps the existing dithered pixel-art treatment. Legacy artwork preferences migrate to the pixelated default automatically.
+- Settings: a "Pixelated look" toggle on the session background. Off renders the image at its highest definition with smooth scaling; on keeps the dithered pixel-art treatment. Legacy artwork preferences migrate automatically.
 - Settings: Notifications, off by default. With it on, a system notification appears when a turn finishes or an agent waits on an approval or question in a session that is not on screen, whether MonoCode is in the background or another session is open; clicking it jumps to that session. Turning it on asks macOS for permission, and a blocked state links to System Settings. The Sounds setting decides whether the notification plays a sound, and the in-app cue is skipped when the banner fires.
 
 ### Changed
