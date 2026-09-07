@@ -954,6 +954,16 @@ function ArtworkSettings() {
             />
           </Row>
           <Row
+            label="Pixelated look"
+            description="Apply the dithered pixel-art treatment. Turn off to render the image at its highest definition with smooth scaling."
+          >
+            <Toggle
+              label="Pixelated artwork"
+              on={artwork.pixelated}
+              onChange={(pixelated) => update({ ...artwork, pixelated })}
+            />
+          </Row>
+          <Row
             label="Artwork in chats"
             description="Keep the selected image behind conversation messages."
           >

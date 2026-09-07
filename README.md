@@ -67,6 +67,17 @@ and `chatOpacity` (default `15`, percent opacity, clamped to 0–100). Existing
 preferences migrate without losing image selection, local path, brightness,
 or pixel size. No database migration, environment variable or port is added.
 
+#### Pixelated look vs native definition
+
+The session background defaults to the dithered pixel-art treatment (Miku's
+chunky woven texture). Turn **Pixelated look** off under
+**Settings → Appearance → Session background** to render the image at its
+highest definition with smooth scaling — no downsample, no Bayer dither,
+no `image-rendering: pixelated`. The setting is a boolean on
+`monocode.sessionArtwork.pixelated` (default `true`) and migrates legacy
+artwork preferences automatically. The pixel-size slider only affects the
+pixelated path; the native path paints at container resolution.
+
 ### Paste images on Linux and macOS
 
 Copy a screenshot or image, focus the chat composer, then press **Ctrl+V** on

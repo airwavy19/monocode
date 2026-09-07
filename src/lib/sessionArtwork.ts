@@ -8,6 +8,7 @@ export type SessionArtwork = {
   path?: string;
   name: string;
   pixelSize: number;
+  pixelated: boolean;
   brightness: number;
   showInChat: boolean;
   chatOpacity: number;
@@ -19,6 +20,7 @@ export const DEFAULT_ARTWORK: SessionArtwork = {
   source: "/wallpapers/miku.jpg",
   name: "Miku",
   pixelSize: 3,
+  pixelated: true,
   brightness: 65,
   showInChat: true,
   chatOpacity: 15,
@@ -49,6 +51,8 @@ export function loadSessionArtwork(): SessionArtwork {
               ? Math.max(0, Math.min(100, value.chatOpacity))
               : 15,
             pixelSize: Math.max(1, Math.min(6, value.pixelSize)),
+            pixelated:
+              typeof value.pixelated === "boolean" ? value.pixelated : true,
             brightness: Math.max(20, Math.min(100, value.brightness)),
           }
         : DEFAULT_ARTWORK;

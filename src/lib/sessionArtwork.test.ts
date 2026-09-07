@@ -32,4 +32,19 @@ describe("session artwork preferences", () => {
       load({ ...DEFAULT_ARTWORK, showInChat: "yes", chatOpacity: "bad" }),
     ).toMatchObject({ showInChat: true, chatOpacity: 15 });
   });
+  it("defaults to pixelated and migrates legacy artwork to it", () => {
+    const {
+      pixelated: _pixelated,
+      showInChat: _show,
+      chatOpacity: _opacity,
+      ...legacy
+    } = DEFAULT_ARTWORK;
+    expect(DEFAULT_ARTWORK.pixelated).toBe(true);
+    expect(load(legacy).pixelated).toBe(true);
+  });
+  it("preserves the native-resolution opt-out", () => {
+    expect(load({ ...DEFAULT_ARTWORK, pixelated: false })).toMatchObject({
+      pixelated: false,
+    });
+  });
 });
