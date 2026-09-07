@@ -102,9 +102,9 @@ describe("theme preference setting", () => {
     Reflect.deleteProperty(globalThis, "window");
   });
 
-  it("defaults to dark", () => {
-    expect(THEME_PREFERENCE_DEFAULT).toBe("dark");
-    expect(loadThemePreference()).toBe("dark");
+  it("defaults to pitch black", () => {
+    expect(THEME_PREFERENCE_DEFAULT).toBe("black");
+    expect(loadThemePreference()).toBe("black");
   });
 
   it("persists each preference", () => {
