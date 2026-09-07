@@ -67,16 +67,25 @@ and `chatOpacity` (default `15`, percent opacity, clamped to 0–100). Existing
 preferences migrate without losing image selection, local path, brightness,
 or pixel size. No database migration, environment variable or port is added.
 
-#### Pixelated look vs native definition
+#### High-definition background by default
 
-The session background defaults to the dithered pixel-art treatment (Miku's
-chunky woven texture). Turn **Pixelated look** off under
-**Settings → Appearance → Session background** to render the image at its
-highest definition with smooth scaling — no downsample, no Bayer dither,
-no `image-rendering: pixelated`. The setting is a boolean on
-`monocode.sessionArtwork.pixelated` (default `true`) and migrates legacy
-artwork preferences automatically. The pixel-size slider only affects the
-pixelated path; the native path paints at container resolution.
+The session background now renders at its **highest definition by default**:
+container-resolution canvas, smooth bilinear scaling, no downsample, no Bayer
+dither, `image-rendering: auto`. The bundled `Miku` wallpaper and any
+local image (JPEG, PNG, WebP) fill the pane crisply out of the box.
+
+Turn **Pixelated look** on under **Settings → Appearance → Session
+background** to apply the dithered pixel-art treatment on top of the
+high-definition render — Miku's chunky woven texture. The toggle is a
+boolean on `monocode.sessionArtwork.pixelated` (default `false`). The
+pixel-size slider only affects the pixelated path; the native path paints
+at container resolution.
+
+Legacy artwork preferences that match the previous default bundle
+(bundled `Miku`, `pixelSize: 3`, `brightness: 65`, `showInChat: true`,
+`chatOpacity: 15`, no custom `path`) migrate to `pixelated: false` on next
+launch. Users who customised the image or explicitly toggled the
+pixel-art treatment keep their saved choice.
 
 ### Paste images on Linux and macOS
 

@@ -15,7 +15,23 @@ export type SessionArtwork = {
 };
 const KEY = "monocode.sessionArtwork";
 const EVENT = "monocode:session-artwork";
+// Highest-definition render by default: container-resolution canvas with
+// smooth scaling and no dithering. The pixel-art treatment is an explicit
+// opt-in via the Settings → Appearance → Pixelated look toggle.
 export const DEFAULT_ARTWORK: SessionArtwork = {
+  mode: "image",
+  source: "/wallpapers/miku.jpg",
+  name: "Miku",
+  pixelSize: 3,
+  pixelated: false,
+  brightness: 65,
+  showInChat: true,
+  chatOpacity: 15,
+};
+// Snapshot of the previous default bundle (before the high-definition flip)
+// so the loader can detect users who never customised their background and
+// migrate them to the new default without clobbering anyone who opted in.
+const LEGACY_DEFAULT_ARTWORK: SessionArtwork = {
   mode: "image",
   source: "/wallpapers/miku.jpg",
   name: "Miku",
@@ -25,6 +41,20 @@ export const DEFAULT_ARTWORK: SessionArtwork = {
   showInChat: true,
   chatOpacity: 15,
 };
+function matchesLegacyDefault(
+  normalized: Omit<SessionArtwork, "pixelated">,
+): boolean {
+  return (
+    normalized.mode === LEGACY_DEFAULT_ARTWORK.mode &&
+    normalized.source === LEGACY_DEFAULT_ARTWORK.source &&
+    normalized.path === undefined &&
+    normalized.name === LEGACY_DEFAULT_ARTWORK.name &&
+    normalized.pixelSize === LEGACY_DEFAULT_ARTWORK.pixelSize &&
+    normalized.brightness === LEGACY_DEFAULT_ARTWORK.brightness &&
+    normalized.showInChat === LEGACY_DEFAULT_ARTWORK.showInChat &&
+    normalized.chatOpacity === LEGACY_DEFAULT_ARTWORK.chatOpacity
+  );
+}
 let cachedRaw: string | null | undefined;
 let cached = DEFAULT_ARTWORK;
 export function loadSessionArtwork(): SessionArtwork {
@@ -33,6 +63,25 @@ export function loadSessionArtwork(): SessionArtwork {
     if (raw === cachedRaw) return cached;
     cachedRaw = raw;
     const value = raw ? JSON.parse(raw) : null;
+    const showInChat =
+      typeof value.showInChat === "boolean" ? value.showInChat : true;
+    const chatOpacity = Number.isFinite(value.chatOpacity)
+      ? Math.max(0, Math.min(100, value.chatOpacity))
+      : 15;
+    const pixelSize = Math.max(1, Math.min(6, value.pixelSize));
+    const brightness = Math.max(20, Math.min(100, value.brightness));
+    const pixelatedRaw = typeof value.pixelated === "boolean";
+    const pixelated = pixelatedRaw
+      ? matchesLegacyDefault({
+          ...value,
+          showInChat,
+          chatOpacity,
+          pixelSize,
+          brightness,
+        })
+        ? false
+        : value.pixelated
+      : false;
     cached =
       value &&
       ["image", "arcade", "none"].includes(value.mode) &&
@@ -45,15 +94,11 @@ export function loadSessionArtwork(): SessionArtwork {
       Number.isFinite(value.brightness)
         ? {
             ...value,
-            showInChat:
-              typeof value.showInChat === "boolean" ? value.showInChat : true,
-            chatOpacity: Number.isFinite(value.chatOpacity)
-              ? Math.max(0, Math.min(100, value.chatOpacity))
-              : 15,
-            pixelSize: Math.max(1, Math.min(6, value.pixelSize)),
-            pixelated:
-              typeof value.pixelated === "boolean" ? value.pixelated : true,
-            brightness: Math.max(20, Math.min(100, value.brightness)),
+            showInChat,
+            chatOpacity,
+            pixelSize,
+            pixelated,
+            brightness,
           }
         : DEFAULT_ARTWORK;
   } catch {

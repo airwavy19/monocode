@@ -32,19 +32,42 @@ describe("session artwork preferences", () => {
       load({ ...DEFAULT_ARTWORK, showInChat: "yes", chatOpacity: "bad" }),
     ).toMatchObject({ showInChat: true, chatOpacity: 15 });
   });
-  it("defaults to pixelated and migrates legacy artwork to it", () => {
+  it("defaults to high definition and migrates legacy artwork to it", () => {
     const {
       pixelated: _pixelated,
       showInChat: _show,
       chatOpacity: _opacity,
       ...legacy
     } = DEFAULT_ARTWORK;
-    expect(DEFAULT_ARTWORK.pixelated).toBe(true);
-    expect(load(legacy).pixelated).toBe(true);
+    expect(DEFAULT_ARTWORK.pixelated).toBe(false);
+    expect(load(legacy).pixelated).toBe(false);
   });
-  it("preserves the native-resolution opt-out", () => {
-    expect(load({ ...DEFAULT_ARTWORK, pixelated: false })).toMatchObject({
-      pixelated: false,
-    });
+  it("migrates a legacy default-bundle save to high definition", () => {
+    const {
+      showInChat: _show,
+      chatOpacity: _opacity,
+      ...legacyBundle
+    } = DEFAULT_ARTWORK;
+    expect(
+      load({
+        ...legacyBundle,
+        mode: "image",
+        source: "/wallpapers/miku.jpg",
+        name: "Miku",
+        pixelSize: 3,
+        pixelated: true,
+        brightness: 65,
+      }),
+    ).toMatchObject({ pixelated: false });
+  });
+  it("preserves the pixel-art opt-in for a customised image", () => {
+    expect(
+      load({
+        ...DEFAULT_ARTWORK,
+        path: "/Users/me/Pictures/wallpaper.jpg",
+        name: "wallpaper.jpg",
+        pixelated: true,
+      }),
+    ).toMatchObject({ pixelated: true });
   });
 });

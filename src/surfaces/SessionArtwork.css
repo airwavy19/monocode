@@ -10,7 +10,9 @@
   display: block;
   width: 100%;
   height: 100%;
-  image-rendering: pixelated;
+  /* Highest-definition by default; the inline style flips to pixelated when
+     the user opts into the dithered pixel-art treatment. */
+  image-rendering: auto;
   opacity: var(--artwork-brightness, 0.65);
   mask-image: linear-gradient(
     to bottom,

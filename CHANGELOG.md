@@ -10,8 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Appearance: the default theme preference is now pitch black, so a fresh install opens in true OLED-friendly pure black instead of the dark-grey scheme. Existing users keep their saved preference.
-- Settings: a "Pixelated look" toggle on the session background. Off renders the image at its highest definition with smooth scaling; on (default) keeps the existing dithered pixel-art treatment. Legacy artwork preferences migrate to the pixelated default automatically.
+- Settings: a "Pixelated look" toggle on the session background. Off renders the image at its highest definition with smooth scaling; on keeps the existing dithered pixel-art treatment. Legacy artwork preferences migrate to the pixelated default automatically.
 - Settings: Notifications, off by default. With it on, a system notification appears when a turn finishes or an agent waits on an approval or question in a session that is not on screen, whether MonoCode is in the background or another session is open; clicking it jumps to that session. Turning it on asks macOS for permission, and a blocked state links to System Settings. The Sounds setting decides whether the notification plays a sound, and the in-app cue is skipped when the banner fires.
+
+### Changed
+
+- Session background now renders at its highest definition by default — container-resolution canvas, smooth bilinear scaling, no Bayer dither, `image-rendering: auto`. The bundled `Miku` wallpaper and any local image fill the pane crisply out of the box. The **Pixelated look** toggle in **Settings → Appearance → Session background** opts back into the dithered pixel-art treatment. Legacy artwork preferences that match the previous default bundle (bundled `Miku`, `pixelSize: 3`, `brightness: 65`, `showInChat: true`, `chatOpacity: 15`, no custom `path`) silently migrate to `pixelated: false` on next launch. Custom images and explicitly toggled preferences are preserved.
 
 ## [0.5.0] - 2026-09-07
 
