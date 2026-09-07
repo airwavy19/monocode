@@ -28,6 +28,8 @@ import {
   type TurnIntent,
 } from "../lib/session";
 import { AgentTranscript } from "./AgentTranscript";
+import { SessionArtwork } from "./SessionArtwork";
+import { useSessionArtwork } from "../lib/sessionArtwork";
 import { EmptySession } from "./EmptySession";
 import { MOD } from "../lib/platform";
 import {
@@ -180,6 +182,7 @@ export const SessionPane = memo(function SessionPane({
       onBuildPlan(session.id, blockId, target),
     [onBuildPlan, session.id],
   );
+  const artwork = useSessionArtwork();
   const jumpToBottomRef = useRef<(() => void) | null>(null);
   const quoteRequestId = useRef(0);
   const [showJumpToBottom, setShowJumpToBottom] = useState(false);
@@ -382,7 +385,18 @@ export const SessionPane = memo(function SessionPane({
           </button>
         </div>
       ) : null}
-      <div className="relative min-h-0 flex-1">
+      <div className="relative isolate min-h-0 flex-1">
+        {!isEmpty &&
+          artwork.mode === "image" &&
+          artwork.showInChat &&
+          artwork.chatOpacity > 0 && (
+            <div
+              className="pointer-events-none absolute inset-0 -z-10"
+              style={{ opacity: artwork.chatOpacity / 100 }}
+            >
+              <SessionArtwork artwork={{ ...artwork, brightness: 100 }} />
+            </div>
+          )}
         {isEmpty ? (
           <EmptySession
             cwd={session.cwd}

@@ -48,14 +48,55 @@ in **Settings → General** to keep it visible or hide it entirely. The same
 toggle is bound to `Ctrl/Cmd + Shift + T` anywhere in the app, so a running
 turn can be flipped without losing your place.
 
-### Paste images on Linux
+### Artwork behind active chats
 
-The composer paste handler reads `text/uri-list` and `text/plain` clipboard
-payloads in addition to the regular `DataTransfer.files` list. On
-X11/Wayland, GNOME Screenshot, Flameshot, and GIMP copy screenshots as
-`file:///tmp/...png` URIs rather than as `File` objects, so without the URI
-fallback paste silently does nothing. Both flows land in the same attachment
-list and small PNGs are inlined as base64 for vision-capable models.
+Open **Settings → Appearance → Session background**, choose **Image**, and
+use **Artwork in chats** to keep Miku (or your selected local image) behind
+conversation messages. **Chat opacity** ranges from 0–100%, defaults to 15%,
+and updates immediately. The toggle defaults to on; setting opacity to 0%
+hides the active-chat image. Arcade and None do not draw a chat image.
+The image sits behind the transcript, does not intercept clicks or selection,
+and stays fixed while messages scroll. Existing pixel-size controls apply to
+both empty and populated sessions. **Brightness** still controls the empty
+session and preview, independently of chat opacity; the artwork keeps its
+vertical fade. Reset restores Miku and all artwork defaults.
+
+Preferences remain local under `monocode.sessionArtwork`. New fields are
+`showInChat` (default `true`, whether populated chats show the selected image)
+and `chatOpacity` (default `15`, percent opacity, clamped to 0–100). Existing
+preferences migrate without losing image selection, local path, brightness,
+or pixel size. No database migration, environment variable or port is added.
+
+### Paste images on Linux and macOS
+
+Copy a screenshot or image, focus the chat composer, then press **Ctrl+V** on
+Linux or **Cmd+V** on macOS. A removable image attachment appears above the
+input; type any instructions and send as usual. Image understanding depends
+on the selected provider/model supporting image input. Providers that do not
+support attachments keep their existing restriction.
+
+The composer first uses webview clipboard files/items and local `file://`
+URIs. When the webview provides no image or no paste event, an explicit paste
+shortcut can fall back to the native desktop clipboard. TIFF-only clipboard
+images also use the native path to become PNG. Native clipboard pixels are
+encoded to PNG and enter the existing attachment preview/send flow. Ordinary
+text paste remains native to the input, and files take priority over redundant
+URI payloads. Local URIs decode escaped filename characters; remote file URI
+hosts are ignored. Both normal paste events and keyboard fallback are scoped
+to the composer; no background clipboard polling is performed.
+
+Native access uses arboard with X11 and Wayland data-control support on Linux
+and native clipboard access on macOS. Wayland availability depends on the
+compositor; arboard falls back to X11 if data-control is unavailable. If native
+reading fails, the composer displays the error; use the attachment picker or
+drag a saved image into the composer. Images above 80 MiB of decoded RGBA
+pixels or 20 MiB of encoded PNG data are rejected by the native conversion.
+The existing maximum is 20 attachments per message. Clipboard contents are
+not changed or saved as an artwork preference.
+
+### Releases / Changelog
+
+- [v0.5.0 — chat artwork and image paste](https://github.com/airwavy19/monocode/releases/tag/v0.5.0): adjustable artwork in populated chats; native image clipboard fallback for desktop composers; local URI decoding and full attachment-limit handling. This is a prerelease from main pending native desktop smoke testing. See [CHANGELOG.md](CHANGELOG.md) and the release notes for verification, platform limits and rollback instructions. Installing a rebuilt desktop application is required for the new native clipboard command; refreshing an old binary's frontend is insufficient.
 
 ### Start a fresh chat with `/new`
 

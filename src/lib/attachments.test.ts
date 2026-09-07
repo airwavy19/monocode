@@ -34,6 +34,16 @@ function attachment(
 }
 
 describe("mergeAttachments", () => {
+  it("does not exceed the attachment limit when already full", () => {
+    const existing = Array.from({ length: 20 }, (_, i) =>
+      attachment({ id: String(i), name: `${i}.png` }),
+    );
+    expect(
+      mergeAttachments(existing, [
+        attachment({ id: "extra", name: "extra.png" }),
+      ]),
+    ).toHaveLength(20);
+  });
   it("keeps previously attached images when adding more", () => {
     const first = attachment({ id: "a", name: "one.png" });
     const second = attachment({ id: "b", name: "two.png" });
@@ -94,6 +104,16 @@ describe("filesFromClipboard", () => {
 });
 
 describe("pathsFromClipboard", () => {
+  it("decodes escaped filename characters and rejects remote hosts", () => {
+    expect(
+      pathsFromClipboard({
+        getData: (type) =>
+          type === "text/uri-list"
+            ? "file:///tmp/a%23b%3Fc.png\nfile://remote/tmp/no.png\nfile://localhost/tmp/yes.png"
+            : "",
+      }),
+    ).toEqual(["/tmp/a#b?c.png", "/tmp/yes.png"]);
+  });
   it("reads file:// uris from text/uri-list", () => {
     const data = {
       getData: (type: string) =>

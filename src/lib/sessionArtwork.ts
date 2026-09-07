@@ -9,6 +9,8 @@ export type SessionArtwork = {
   name: string;
   pixelSize: number;
   brightness: number;
+  showInChat: boolean;
+  chatOpacity: number;
 };
 const KEY = "monocode.sessionArtwork";
 const EVENT = "monocode:session-artwork";
@@ -18,6 +20,8 @@ export const DEFAULT_ARTWORK: SessionArtwork = {
   name: "Miku",
   pixelSize: 3,
   brightness: 65,
+  showInChat: true,
+  chatOpacity: 15,
 };
 let cachedRaw: string | null | undefined;
 let cached = DEFAULT_ARTWORK;
@@ -39,6 +43,11 @@ export function loadSessionArtwork(): SessionArtwork {
       Number.isFinite(value.brightness)
         ? {
             ...value,
+            showInChat:
+              typeof value.showInChat === "boolean" ? value.showInChat : true,
+            chatOpacity: Number.isFinite(value.chatOpacity)
+              ? Math.max(0, Math.min(100, value.chatOpacity))
+              : 15,
             pixelSize: Math.max(1, Math.min(6, value.pixelSize)),
             brightness: Math.max(20, Math.min(100, value.brightness)),
           }

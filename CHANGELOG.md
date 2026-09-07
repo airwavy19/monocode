@@ -11,6 +11,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Settings: Notifications, off by default. With it on, a system notification appears when a turn finishes or an agent waits on an approval or question in a session that is not on screen, whether MonoCode is in the background or another session is open; clicking it jumps to that session. Turning it on asks macOS for permission, and a blocked state links to System Settings. The Sounds setting decides whether the notification plays a sound, and the in-app cue is skipped when the banner fires.
 
+## [0.5.0] - 2026-09-07
+
+### Added
+
+- Selected session artwork now appears behind populated chats with an Appearance toggle and independent 0–100% opacity slider (default 15%). Existing artwork preferences migrate automatically.
+- Explicit composer paste can read native desktop clipboard images on Linux and macOS when the webview does not expose a file, converting native pixels and TIFF-only payloads to PNG attachments.
+
+### Fixed
+
+- Clipboard file/URI duplicates are avoided; escaped local filenames decode fully and remote file URI hosts are ignored.
+- Pasting into a full attachment list no longer exceeds the 20-attachment limit.
+
 ## [0.4.0] - 2026-09-06
 
 ### Added

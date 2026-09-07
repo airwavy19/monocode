@@ -310,9 +310,8 @@ function GeneralPage({
   const [notificationPermission, setNotificationPermission] =
     useState<NotificationPermission>(cachedNotificationPermission);
   const [claudeHooks, setClaudeHooks] = useState(loadClaudeHooks);
-  const [showThinking, setShowThinking] = useState<ShowThinking>(
-    loadShowThinking,
-  );
+  const [showThinking, setShowThinking] =
+    useState<ShowThinking>(loadShowThinking);
 
   // The user may flip the switch in System Settings and come back: re-read
   // the OS state whenever the window regains focus while the toggle is on.
@@ -876,13 +875,13 @@ function ArtworkSettings() {
   };
   return (
     <>
-      <Heading title="New session background" />
+      <Heading title="Session background" />
       <Row
         label="Background"
         description="Choose your own artwork, the arcade, or a quiet empty pane."
       >
         <Select
-          label="New session background"
+          label="Session background"
           value={artwork.mode}
           options={[
             { value: "image", label: "Image" },
@@ -952,6 +951,29 @@ function ArtworkSettings() {
               min={1}
               max={6}
               onChange={(pixelSize) => update({ ...artwork, pixelSize })}
+            />
+          </Row>
+          <Row
+            label="Artwork in chats"
+            description="Keep the selected image behind conversation messages."
+          >
+            <Toggle
+              label="Artwork in chats"
+              on={artwork.showInChat}
+              onChange={(showInChat) => update({ ...artwork, showInChat })}
+            />
+          </Row>
+          <Row
+            label="Chat opacity"
+            description="Adjust the image behind messages; 0% hides it. Independent of empty-session brightness."
+          >
+            <Slider
+              label="Chat artwork opacity"
+              value={artwork.chatOpacity}
+              display={`${artwork.chatOpacity}%`}
+              min={0}
+              max={100}
+              onChange={(chatOpacity) => update({ ...artwork, chatOpacity })}
             />
           </Row>
           <Row

@@ -148,6 +148,7 @@ export function mergeAttachments(
 ): Attachment[] {
   const next = [...existing];
   for (const file of incoming) {
+    if (next.length >= MAX_ATTACHMENTS) break;
     const duplicate = next.some(
       (item) =>
         (item.path && file.path && item.path === file.path) ||
@@ -227,15 +228,9 @@ function filePathsFromUriText(raw: string | undefined): string[] {
 function filePathFromUri(value: string): string | undefined {
   if (!value.startsWith("file://")) return undefined;
   try {
-    // Tauri's filesystem APIs accept POSIX paths even on Windows, so we only
-    // need to strip the scheme; URL decoding happens via `decodeURIComponent`.
-    const rest = value.slice("file://".length);
-    if (!rest) return undefined;
-    const hostSlash = rest.indexOf("/");
-    if (hostSlash < 0) return undefined;
-    const path = rest.slice(hostSlash);
-    if (!path) return undefined;
-    return decodeURI(path);
+    const url = new URL(value);
+    if (url.hostname && url.hostname !== "localhost") return undefined;
+    return decodeURIComponent(url.pathname) || undefined;
   } catch {
     return undefined;
   }
@@ -542,4 +537,14 @@ function readBlobBase64(file: File): Promise<string | null> {
     reader.onerror = () => resolve(null);
     reader.readAsDataURL(file);
   });
+}
+
+/** Native fallback for webviews that omit image clipboard items. */
+export async function attachmentsFromNativeClipboard(): Promise<Attachment[]> {
+  const data = await invoke<string | null>("read_clipboard_image");
+  if (!data) return [];
+  const bytes = Uint8Array.from(atob(data), (char) => char.charCodeAt(0));
+  return attachmentsFromFiles([
+    new File([bytes], "clipboard.png", { type: "image/png" }),
+  ]);
 }

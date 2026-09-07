@@ -29,6 +29,7 @@ import {
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import {
   attachmentsFromFiles,
+  attachmentsFromNativeClipboard,
   attachmentsFromPaths,
   filesFromClipboard,
   mergeAttachments,
@@ -506,7 +507,9 @@ export function Composer({
     ],
     [skills],
   );
-  const skillLimit = hasNativeCommands(harness) ? Number.POSITIVE_INFINITY : undefined;
+  const skillLimit = hasNativeCommands(harness)
+    ? Number.POSITIVE_INFINITY
+    : undefined;
   const rankedSkills = rankSkills(slashItems, slash?.query ?? "", skillLimit);
   const attachmentsSupported = harnessSupportsAttachments(harness);
   const skillNames = useMemo(
@@ -740,7 +743,8 @@ export function Composer({
         setCreatingSkill(false);
         return;
       }
-      const planCommand = skill.kind === "builtin" && skill.name === PLAN_COMMAND.name;
+      const planCommand =
+        skill.kind === "builtin" && skill.name === PLAN_COMMAND.name;
       const next = planCommand
         ? `${el.value.slice(0, token.start)}${el.value
             .slice(token.end)
@@ -955,8 +959,42 @@ export function Composer({
     syncHasValue("", []);
   };
 
+  const [pasteError, setPasteError] = useState<string | null>(null);
+  const pasteSequence = useRef(0);
+  const nativePastePending = useRef(false);
+  const pasteNativeImage = async () => {
+    if (!enabled || !attachmentsSupported || nativePastePending.current) return;
+    nativePastePending.current = true;
+    setPasteError(null);
+    try {
+      const files = await attachmentsFromNativeClipboard();
+      if (ref.current) addAttachments(files);
+    } catch (error) {
+      if (ref.current) setPasteError(`Could not paste image: ${String(error)}`);
+    } finally {
+      nativePastePending.current = false;
+    }
+  };
+
   const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (creatingSkill) return;
+    if (
+      (e.ctrlKey || e.metaKey) &&
+      !e.altKey &&
+      !e.shiftKey &&
+      e.key.toLowerCase() === "v"
+    ) {
+      const sequence = pasteSequence.current;
+      // Some desktop webviews emit no paste event for a native image.
+      window.setTimeout(() => {
+        if (
+          pasteSequence.current === sequence &&
+          ref.current === document.activeElement
+        ) {
+          void pasteNativeImage();
+        }
+      }, 100);
+    }
 
     if (mentionOpen) {
       if (e.key === "ArrowDown") {
@@ -1053,17 +1091,34 @@ export function Composer({
   };
 
   const onPaste = (e: ClipboardEvent<HTMLTextAreaElement>) => {
+    pasteSequence.current += 1;
+    if (!enabled || !attachmentsSupported) return;
+    setPasteError(null);
     const files = filesFromClipboard(e.clipboardData);
     const uriPaths = pathsFromClipboard(e.clipboardData);
-    if (files.length === 0 && uriPaths.length === 0) return;
+    if (
+      files.length > 0 &&
+      files.every((file) => /^image\/tiff?$/i.test(file.type))
+    ) {
+      e.preventDefault();
+      void pasteNativeImage();
+      return;
+    }
+    if (files.length === 0 && uriPaths.length === 0) {
+      if (!e.clipboardData.getData("text/plain")) void pasteNativeImage();
+      return;
+    }
     e.preventDefault();
-    if (!attachmentsSupported) return;
-    if (files.length > 0) {
-      void attachmentsFromFiles(files).then(addAttachments);
-    }
-    if (uriPaths.length > 0) {
-      void attachmentsFromPaths(uriPaths).then(addAttachments);
-    }
+    // File and URI payloads can describe the same image. Prefer real files.
+    const incoming =
+      files.length > 0
+        ? attachmentsFromFiles(files)
+        : attachmentsFromPaths(uriPaths);
+    void incoming
+      .then(addAttachments)
+      .catch((error) =>
+        setPasteError(`Could not paste image: ${String(error)}`),
+      );
   };
 
   const attachFromPicker = () => {
@@ -1084,6 +1139,11 @@ export function Composer({
         <QuestionForm prompt={question} onReply={onQuestionReply} />
       ) : null}
       {children}
+      {pasteError && (
+        <p role="alert" className="px-3 py-1 text-xs text-red-400">
+          {pasteError}
+        </p>
+      )}
       <MessageQueue
         messages={queuedMessages}
         status={queueStatus}
